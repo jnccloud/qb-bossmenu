@@ -44,7 +44,7 @@ local menu_button1 = menu:AddButton({
     icon = '🤝',
     label = 'Recruit',
     value = menu4,
-    description = 'Hire New Players'
+    description = 'Recruit New Employees'
 })
 local menu_button2 = menu:AddButton({
     icon = '📦',
@@ -96,7 +96,7 @@ end)
 -- Outfit
 menu_button3:On("select", function()
     MenuV:CloseMenu(menu)
-    TriggerEvent('qb-clothing:client:openOutfitMenu')
+    TriggerEvent('gc-wardrobe:open')
 end)
 
 -- Society
@@ -106,7 +106,7 @@ end)
 
 -- Withdraw
 menu_button6:On("select", function()
-    local result = LocalInput('Withdrawal Amount', 255, '')
+    local result = LocalInput('Withdrawal Amount', 16, '')
     if result ~= nil then
         TriggerServerEvent("qb-bossmenu:server:withdrawMoney", tonumber(result))
         UpdateSociety()
@@ -115,7 +115,7 @@ end)
 
 -- Deposit
 menu_button7:On("select", function()
-    local result = LocalInput('Deposit Amount', 255, '')
+    local result = LocalInput('Deposit Amount', 16, '')
     if result ~= nil then
         TriggerServerEvent("qb-bossmenu:server:depositMoney", tonumber(result))
         UpdateSociety()
@@ -132,9 +132,11 @@ menu_button:On("select", function()
                 value = v,
                 description = 'Employee',
                 select = function(btn)
-                    local select = btn.Value
-                    ManageEmployees(select)
-                end
+                    --if PlayerJob.name and PlayerJob.isboss then
+                        local select = btn.Value
+                            ManageEmployees(select)
+                        end
+                --end
             })
         end
     end, PlayerJob.name)
@@ -203,27 +205,29 @@ function ManageEmployees(employee)
             icon = '🔥',
             label = "Fire",
             value = "Fire",
-            description = "Fire " .. employee.name
+            description = "Terminate " .. employee.name
         }
     }
     for k, v in pairs(buttons) do
-        local menu_button9 = manageroptions:AddButton({
-            icon = v.icon,
-            label = v.label,
-            value = v.value,
-            description = v.description,
-            select = function(btn)
-                local values = btn.Value
-                if values == 'promote' then
-                    local result = LocalInput('New Grade Level', 255, '')
-                    if result ~= nil then
-                        TriggerServerEvent('qb-bossmenu:server:updateGrade', employee.source, tonumber(result))
+        if PlayerJob.name and PlayerJob.grade.level >= employee.level then
+            local menu_button9 = manageroptions:AddButton({
+                icon = v.icon,
+                label = v.label,
+                value = v.value,
+                description = v.description,
+                select = function(btn)
+                    local values = btn.Value
+                    if values == 'promote' then
+                        local result = LocalInput('New Grade Level', 3, '')
+                        if result ~= nil then
+                            TriggerServerEvent('qb-bossmenu:server:updateGrade', employee.empSource, tonumber(result))
+                        end
+                    else
+                        TriggerServerEvent('qb-bossmenu:server:fireEmployee', employee.empSource)
                     end
-                else
-                    TriggerServerEvent('qb-bossmenu:server:fireEmployee', employee.source)
                 end
-            end
-        })
+            })
+        end
     end
 end
 
